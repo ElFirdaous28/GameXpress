@@ -13,11 +13,13 @@ class AuthController extends Controller
         $fields = $request->validate([
             'name' => 'required|max:255',
             'email' => 'required|email|unique:users',
+            'role' => 'required',
             'password' => 'required|confirmed'
         ]);
 
         $user = User::create($fields);
-
+        $user->assignRole($fields['role']);
+        
         $token = $user->createToken($request->name);
 
         return [
@@ -56,7 +58,7 @@ class AuthController extends Controller
         $request->user()->tokens()->delete();
 
         return [
-            'message' => 'You are logged out.' 
+            'message' => 'You are logged out.'
         ];
     }
 }
