@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -20,9 +21,9 @@ Route::prefix('v1/admin')->group(function () {
 });
 
 // super admin routes
-Route::middleware(['role:super_admin', 'auth:sanctum'])->group(function () {
-    Route::get('/admin/dashboard', function () {
-        return 'Yes, you can see this page';
+Route::prefix('v1/admin')->group(function () {
+    Route::middleware(['role:super_admin', 'auth:sanctum'])->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
     });
 });
 
