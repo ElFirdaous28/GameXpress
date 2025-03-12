@@ -1,6 +1,8 @@
 <?php
 
-use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Api\V1\Admin\CategoryController;
+use App\Http\Controllers\Api\V1\Admin\DashboardController;
+use App\Http\Controllers\Api\V1\Admin\ProductController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -29,8 +31,11 @@ Route::prefix('v1/admin')->group(function () {
 
 
 // product manager routes
-Route::middleware(['role:product_manager', 'auth:sanctum'])->group(function () {
-    //    
+Route::prefix('v1/admin')->group(function () {
+    Route::middleware(['role:product_manager', 'auth:sanctum'])->group(function () {
+        Route::apiResource('products',ProductController::class);
+        Route::apiResource('categories',CategoryController::class);
+    });
 });
 
 // user manager routes
