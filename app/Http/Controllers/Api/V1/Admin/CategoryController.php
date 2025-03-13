@@ -91,14 +91,12 @@ class CategoryController extends Controller
     {
         $category = Category::findOrFail($id);
 
-        if ($category) {
-            if ($category->icon_path) {
-                Storage::disk('public')->delete($category->icon_path);
-            }
-            $category->delete();
-            return response()->json([
-                'message' => 'category deleted successfully',
-            ]);
+        if ($category->icon_path) {
+            Storage::disk('public')->delete($category->icon_path);
         }
+        $category->delete();
+        return response()->json([
+            'message' => 'category deleted successfully',
+        ]);
     }
 }
