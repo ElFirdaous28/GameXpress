@@ -56,7 +56,7 @@ class CategoryController extends Controller
         $category = Category::findOrFail($id);
 
         $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name,'. $category->id,
+            'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
             'icon_path' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
@@ -92,6 +92,9 @@ class CategoryController extends Controller
         $category = Category::findOrFail($id);
 
         if ($category) {
+            if ($category->icon_path) {
+                Storage::disk('public')->delete($category->icon_path);
+            }
             $category->delete();
             return response()->json([
                 'message' => 'category deleted successfully',
