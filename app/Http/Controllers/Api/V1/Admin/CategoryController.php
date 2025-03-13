@@ -56,8 +56,8 @@ class CategoryController extends Controller
         $category = Category::findOrFail($id);
 
         $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name',
-            'icon_link' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // Validate as an image
+            'name' => 'required|string|max:255|unique:categories,name,'. $category->id,
+            'icon_path' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         // Update name & slug
@@ -67,13 +67,13 @@ class CategoryController extends Controller
         ]);
 
         // Handle Image Upload
-        if ($request->hasFile('icon_link')) {
+        if ($request->hasFile('icon_path')) {
             if ($category->icon_path) {
                 Storage::disk('public')->delete($category->icon_path);
             }
 
             // Store new image
-            $imagePath = $request->file('icon_link')->store('categories', 'public');
+            $imagePath = $request->file('icon_path')->store('categories', 'public');
             $category->icon_path = $imagePath;
             $category->save();
         }
@@ -91,9 +91,11 @@ class CategoryController extends Controller
     {
         $category = Category::findOrFail($id);
 
-        $category->delete();
-        return response()->json([
-            'message' => 'category deleted successfully',
-        ]);
+        if ($category) {
+            $category->delete();
+            return response()->json([
+                'message' => 'category deleted successfully',
+            ]);
+        }
     }
 }
