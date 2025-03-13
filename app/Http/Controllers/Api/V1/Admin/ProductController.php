@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\V1\Admin;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -25,20 +27,45 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        $fields = $request->validate([
+        $request->validate([
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'category_id' => 'required|exists:categories,id',
+            'primary_image' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'images.*' => 'image|mimes:jpg,jpeg,png|max:2048'
         ]);
 
-        $product = Product::create($fields);
+        $product = Product::create([
+            'name' => $request->name,
+            'slug' => Str::slug($request->name),
+            'price' => $request->price,
+            'stock' => $request->stock,
+            'category_id' => $request->category_id,
+            'status' => $request->stock > 0 ? 'unavailable' : 'unavailable'
+        ]);
+
+        // store primary image
+        $primaryImagePath = $request->file('primary_image')->store('products', 'public');
+        $product->images()->create([
+            'image_path' => $primaryImagePath,
+            'is_primary' => true
+        ]);
+
+        // store other images
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $imagePath = $image->store('products', 'public');
+                $product->images()->create([
+                    'image_path' => $imagePath,
+                ]);
+            }
+        }
 
         return response()->json([
             'message' => 'Product created successfully',
-            'product' => $product
+            'product' => $product->load('images')
         ], 201);
-        
     }
 
     /**
@@ -46,7 +73,11 @@ class ProductController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $product = Product::findOrFail($id);
+
+        return response()->json([
+            'product' => $product->load('images')
+        ]);
     }
 
     /**
@@ -54,14 +85,76 @@ class ProductController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $product = Product::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|max:255|unique:products,name,' . $product->id,
+            'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+            'category_id' => 'required|exists:categories,id',
+            'primary_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
+        ]);
+
+        $product->update([
+            'name' => $request->name,
+            'slug' => Str::slug($request->name),
+            'price' => $request->price,
+            'stock' => $request->stock,
+            'category_id' => $request->category_id,
+            'status' => $request->stock > 0 ? 'available' : 'unavailable'
+        ]);
+
+        // Update primary image
+        if ($request->hasFile('primary_image')) {
+            if ($product->images()->where('is_primary', true)->exists()) {
+                $oldPrimaryImage = $product->images()->where('is_primary', true)->first();
+                Storage::disk('public')->delete($oldPrimaryImage->image_path);
+                $oldPrimaryImage->delete();
+            }
+
+            $primaryImagePath = $request->file('primary_image')->store('products', 'public');
+            $product->images()->create([
+                'image_path' => $primaryImagePath,
+                'is_primary' => true
+            ]);
+        }
+
+        // additional images
+        if ($request->hasFile('images')) {
+            // Delete all existing images except the primary one
+            $product->images()->where('is_primary', false)->delete();
+
+            foreach ($request->file('images') as $image) {
+                $imagePath = $image->store('products', 'public');
+                $product->images()->create([
+                    'image_path' => $imagePath,
+                ]);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Product updated successfully',
+            'product' => $product->load('images')
+        ]);
     }
+
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
-        //
+        $product = Product::findOrFail($id);
+        foreach ($product->images as $image) {
+            if (Storage::disk('public')->exists($image->image_path)) {
+                Storage::disk('public')->delete($image->image_path);
+            }
+        }
+        $product->delete();
+
+        return response()->json([
+            'message' => 'Product and its images deleted successfully.'
+        ]);
     }
 }

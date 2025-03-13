@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name')->unique();
             $table->string("slug")->unique();
-            $table->string('icon_path')->nullable()->default('default-icon.svg');;
+            $table->string('icon_path')->nullable();
             $table->timestamps();
         });
     }
