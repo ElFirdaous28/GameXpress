@@ -26,6 +26,7 @@ Route::prefix('v1/admin')->group(function () {
 Route::prefix('v1/admin')->group(function () {
     Route::middleware(['role:super_admin', 'auth:sanctum'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
+        Route::apiResource('categories',CategoryController::class);
     });
 });
 
@@ -34,7 +35,6 @@ Route::prefix('v1/admin')->group(function () {
 Route::prefix('v1/admin')->group(function () {
     Route::middleware(['role:product_manager', 'auth:sanctum'])->group(function () {
         Route::apiResource('products',ProductController::class);
-        Route::apiResource('categories',CategoryController::class);
     });
 });
 

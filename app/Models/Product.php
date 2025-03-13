@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Product extends Model
 {
     use HasFactory;
-    protected $fillable = ['name', 'slug', 'price', 'stock', 'category_id'];
+    protected $fillable = ['name', 'slug', 'price', 'stock', 'category_id','status'];
 
     public function images(){
         return $this->hasMany(ProductImage::class);

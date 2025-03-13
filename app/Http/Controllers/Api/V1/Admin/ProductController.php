@@ -15,7 +15,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $products = Product::all();
+        $products = Product::with('images')->get();
         return response()->json([
             'status' => 'success',
             'products' => $products
@@ -42,7 +42,7 @@ class ProductController extends Controller
             'price' => $request->price,
             'stock' => $request->stock,
             'category_id' => $request->category_id,
-            'status' => $request->stock > 0 ? 'unavailable' : 'unavailable'
+            'status' => $request->stock > 0 ? 'available' : 'unavailable',
         ]);
 
         // store primary image
@@ -63,6 +63,7 @@ class ProductController extends Controller
         }
 
         return response()->json([
+            'status' => 'success',
             'message' => 'Product created successfully',
             'product' => $product->load('images')
         ], 201);
