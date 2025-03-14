@@ -230,4 +230,28 @@ class UserControllerTest extends TestCase
         $response = $this->deleteJson(route('users.destroy', 999));
         $response->assertStatus(404);
     }
+
+    public function test_restore_recovers_soft_deleted_user()
+    {
+        // Create and soft delete a user
+        $user = User::factory()->create();
+        $user->delete();
+
+        // Verify user is soft deleted
+        $this->assertSoftDeleted('users', ['id' => $user->id]);
+
+        // Test restore endpoint
+        $response = $this->putJson(route('users.restore', $user->id));
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'status' => 'success',
+                'message' => 'User restored successfully.'
+            ]);
+
+        // Verify user is now accessible without withTrashed()
+        $this->assertDatabaseHas('users', ['id' => $user->id]);
+        $this->assertNotNull(User::find($user->id));
+        $this->assertFalse(User::find($user->id)->trashed());
+    }
 }
