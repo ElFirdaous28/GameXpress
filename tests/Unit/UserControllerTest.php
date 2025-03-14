@@ -152,7 +152,7 @@ class UserControllerTest extends TestCase
             'name' => 'Updated Name',
             'email' => 'updated@example.com'
         ]);
-        
+
         // Check if role was updated
         $this->assertFalse($user->fresh()->hasRole('product_manager'));
         $this->assertTrue($user->fresh()->hasRole('user_manager'));
@@ -216,7 +216,13 @@ class UserControllerTest extends TestCase
             ]);
 
         // Check if user was deleted from database
-        $this->assertDatabaseMissing('users', ['id' => $user->id]);
+        $this->assertSoftDeleted('users', ['id' => $user->id]);
+
+        // Alternative approach using the model
+        $this->assertTrue(User::withTrashed()->find($user->id)->trashed());
+
+        // Verify the user is not in the regular query results
+        $this->assertNull(User::find($user->id));
     }
 
     public function test_destroy_returns_404_for_nonexistent_user()

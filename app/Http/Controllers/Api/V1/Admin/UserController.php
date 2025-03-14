@@ -124,4 +124,16 @@ class UserController extends Controller
             'user' => $user
         ]);
     }
+
+    public function restore(string $id)
+    {
+        $user = User::onlyTrashed()->findOrFail($id);
+        $user->restore();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'User restored successfully.',
+            'user' => $user
+        ]);
+    }
 }

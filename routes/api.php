@@ -43,5 +43,6 @@ Route::prefix('v1/admin')->group(function () {
     Route::middleware(['role:user_manager|super_admin', 'auth:sanctum'])->group(function () {
         Route::apiResource('users', UserController::class);
         Route::put('/users/{user}/update-role', [UserController::class, 'updateRole'])->name('users.update-role');
+        Route::put('/users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
     });
 });
