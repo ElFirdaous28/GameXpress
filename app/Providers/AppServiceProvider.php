@@ -23,8 +23,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Route::aliasMiddleware('role', RoleMiddleware::class);
-        Route::aliasMiddleware('permission', PermissionMiddleware::class);
-        Route::aliasMiddleware('role_or_permission', RoleOrPermissionMiddleware::class);
+        //  
     }
 }

@@ -13,13 +13,13 @@ class AuthController extends Controller
         $fields = $request->validate([
             'name' => 'required|max:255',
             'email' => 'required|email|unique:users',
-            'role' => 'required',
             'password' => 'required|confirmed'
         ]);
 
         $user = User::create($fields);
-        $user->assignRole($fields['role']);
-        
+        if (User::count() === 1) {
+            $user->assignRole('super_admin');
+        }
         $token = $user->createToken($request->name);
 
         return [

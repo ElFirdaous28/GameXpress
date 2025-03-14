@@ -18,8 +18,7 @@ class DatabaseSeeder extends Seeder
     {
         Category::factory(10)->create();
 
-        // Create 50 products, each with a related category and 3 images
-        Product::factory(50)->create()->each(function ($product) {
+        Product::factory(5)->create()->each(function ($product) {
             ProductImage::factory(3)->create(['product_id' => $product->id]);
         });
     }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -30,13 +31,12 @@ class UserController extends Controller
             'name' => 'required|max:255',
             'email' => 'required|email|unique:users',
             'role' => 'required|string|in:super_admin,product_manager,user_manager',
-            'password' => 'required|confirmed'
         ]);
-
+        $password = Str::random(12);
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => bcrypt($request->password),
+            'password' => $password,
         ]);
 
         $user->assignRole($request->role);
