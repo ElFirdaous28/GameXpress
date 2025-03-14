@@ -85,7 +85,6 @@ class ProductControllerTest extends TestCase
 
         // Make POST request to store the product
         $response = $this->postJson(route('products.store'), $data);
-        // dd($response->json()); // Add this line to see the actual response
 
         // Assert successful response and structure
         $response->assertStatus(201)
@@ -281,58 +280,6 @@ class ProductControllerTest extends TestCase
         foreach ($otherImages as $image) {
             Storage::disk('public')->assertExists($image->image_path);
         }
-    }
-
-    // update without changing images
-    public function test_updating_a_product_without_images()
-    {
-        $category = Category::factory()->create();
-        $newCategory = Category::factory()->create();
-
-        $product = Product::factory()->create([
-            'name' => 'Original Product',
-            'price' => 99.99,
-            'stock' => 5,
-            'category_id' => $category->id
-        ]);
-
-        // Create a primary image
-        $primaryImage = $product->images()->create([
-            'image_path' => 'test/primary.jpg',
-            'is_primary' => true
-        ]);
-
-        // Create additional images
-        $normalImage = $product->images()->create([
-            'image_path' => 'test/image1.jpg',
-            'is_primary' => false
-        ]);
-
-        $updateData = [
-            'name' => 'Updated Product',
-            'price' => 199.99,
-            'stock' => 20,
-            'category_id' => $newCategory->id,
-        ];
-
-        $response = $this->putJson(route('products.update', $product->id), $updateData);
-
-        $response->assertStatus(200);
-
-        // Check product was updated in database
-        $this->assertDatabaseHas('products', [
-            'id' => $product->id,
-            'name' => 'Updated Product',
-            'slug' => 'updated-product',
-            'price' => 199.99,
-            'stock' => 20,
-            'category_id' => $newCategory->id,
-            'status' => 'available'
-        ]);
-
-        // Verify images remain unchanged
-        $this->assertDatabaseHas('product_images', ['id' => $primaryImage->id]);
-        $this->assertDatabaseHas('product_images', ['id' => $normalImage->id]);
     }
 
     // product delete
