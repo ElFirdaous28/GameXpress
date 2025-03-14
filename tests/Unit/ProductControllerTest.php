@@ -282,17 +282,14 @@ class ProductControllerTest extends TestCase
         }
     }
 
-    // product delete
-    public function test_deleting_a_product()
+    public function test_soft_deleting_a_product()
     {
         Storage::fake('public');
         $category = Category::factory()->create();
 
-        $product = Product::factory()->create([
-            'category_id' => $category->id
-        ]);
+        $product = Product::factory()->create(['category_id' => $category->id]);
 
-        // Create a primary image with real path in fake storage
+        // Create primary image
         $primaryImagePath = 'products/primary-test.jpg';
         Storage::disk('public')->put($primaryImagePath, 'test contents');
 
@@ -301,7 +298,7 @@ class ProductControllerTest extends TestCase
             'is_primary' => true
         ]);
 
-        // Create additional image with real path in fake storage
+        // Create additional image
         $imagePath = 'products/test-image.jpg';
         Storage::disk('public')->put($imagePath, 'test contents');
 
@@ -313,17 +310,61 @@ class ProductControllerTest extends TestCase
         $response = $this->deleteJson(route('products.destroy', $product->id));
 
         $response->assertStatus(200)
-            ->assertJson([
-                'message' => 'Product and its images deleted successfully.'
-            ]);
+            ->assertJson(['message' => 'Product soft deleted successfully.']);
 
-        // Check product was deleted from database
+        // Ensure product is soft deleted (exists in DB but marked as deleted)
+        $this->assertSoftDeleted('products', ['id' => $product->id]);
+
+        // Ensure images still exist in DB
+        $this->assertDatabaseHas('product_images', ['product_id' => $product->id]);
+
+        // Ensure images are still in storage
+        Storage::disk('public')->assertExists($primaryImagePath);
+        Storage::disk('public')->assertExists($imagePath);
+    }
+
+    public function test_force_deleting_a_product()
+    {
+        Storage::fake('public');
+        $category = Category::factory()->create();
+
+        $product = Product::factory()->create(['category_id' => $category->id]);
+
+        // Create primary image
+        $primaryImagePath = 'products/primary-test.jpg';
+        Storage::disk('public')->put($primaryImagePath, 'test contents');
+
+        $product->images()->create([
+            'image_path' => $primaryImagePath,
+            'is_primary' => true
+        ]);
+
+        // Create additional image
+        $imagePath = 'products/test-image.jpg';
+        Storage::disk('public')->put($imagePath, 'test contents');
+
+        $product->images()->create([
+            'image_path' => $imagePath,
+            'is_primary' => false
+        ]);
+
+        // Soft delete first
+        $product->delete();
+        $this->assertSoftDeleted('products', ['id' => $product->id]);
+
+        // Force delete
+        $response = $this->deleteJson(route('products.forcs-destroy', $product->id));
+
+        $response->assertStatus(200)
+            ->assertJson(['message' => 'Product and its images permanently deleted successfully.']);
+
+        // Ensure product is permanently deleted
         $this->assertDatabaseMissing('products', ['id' => $product->id]);
 
-        // Check associated images were deleted
+        // Ensure associated images are deleted from DB
         $this->assertDatabaseMissing('product_images', ['product_id' => $product->id]);
 
-        // Check files were deleted from storage
+        // Ensure images are deleted from storage
         Storage::disk('public')->assertMissing($primaryImagePath);
         Storage::disk('public')->assertMissing($imagePath);
     }

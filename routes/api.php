@@ -34,6 +34,7 @@ Route::prefix('v1/admin')->group(function () {
 Route::prefix('v1/admin')->group(function () {
     Route::middleware(['role:product_manager|super_admin', 'auth:sanctum'])->group(function () {
         Route::apiResource('products', ProductController::class);
+        Route::delete('products/{product}/force-destroy',[ProductController::class,'forceDestroy'])->name('products.forcs-destroy');
         Route::apiResource('categories', CategoryController::class);
     });
 });

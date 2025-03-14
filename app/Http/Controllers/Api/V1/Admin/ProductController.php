@@ -147,15 +147,27 @@ class ProductController extends Controller
     public function destroy(string $id)
     {
         $product = Product::findOrFail($id);
+        $product->delete();
+
+        return response()->json([
+            'message' => 'Product soft deleted successfully.'
+        ]);
+    }
+
+    public function forceDestroy(string $id)
+    {
+        $product = Product::withTrashed()->findOrFail($id);
+
         foreach ($product->images as $image) {
             if (Storage::disk('public')->exists($image->image_path)) {
                 Storage::disk('public')->delete($image->image_path);
             }
         }
-        $product->delete();
+
+        $product->forceDelete();
 
         return response()->json([
-            'message' => 'Product and its images deleted successfully.'
+            'message' => 'Product and its images permanently deleted successfully.'
         ]);
     }
 }
