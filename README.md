@@ -10,6 +10,7 @@ The API documentation is available through Postman collections:
 - **Users**: https://documenter.getpostman.com/view/42977502/2sAYkBt2Fn
 - **Categories**: https://documenter.getpostman.com/view/42977502/2sAYkBt2L9
 - **Products**: https://documenter.getpostman.com/view/42977502/2sAYkBt2LA
+- **Dashboard**: https://documenter.getpostman.com/view/42977502/2sAYkBt2LB
 
 These links provide detailed information on each endpoint, including request and response structures.
 
