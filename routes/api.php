@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\Admin\ProductController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -34,7 +35,7 @@ Route::prefix('v1/admin')->group(function () {
 Route::prefix('v1/admin')->group(function () {
     Route::middleware(['role:product_manager|super_admin', 'auth:sanctum'])->group(function () {
         Route::apiResource('products', ProductController::class);
-        Route::delete('products/{product}/force-destroy',[ProductController::class,'forceDestroy'])->name('products.forcs-destroy');
+        Route::delete('products/{product}/force-destroy', [ProductController::class, 'forceDestroy'])->name('products.forcs-destroy');
         Route::apiResource('categories', CategoryController::class);
     });
 });
@@ -47,3 +48,23 @@ Route::prefix('v1/admin')->group(function () {
         Route::put('/users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
     });
 });
+
+
+// Store session (POST /set-session)
+Route::post('/set-session', function (Request $request) {
+    session(['user_id' => $request->input('user_id')]); // Store user_id
+    session()->save(); // **Force session to be saved**
+    
+    return response()->json([
+        'message' => 'Session stored successfully',
+        'session_id' => session()->getId(), // Return session ID
+    ]);
+})->middleware('session');
+
+// Retrieve session (GET /get-session)
+Route::get('/get-session', function (Request $request) {
+    return response()->json([
+        'user_id' => session('user_id'), // Retrieve user_id from session
+        'session_id' => session()->getId(),
+    ]);
+})->middleware('session');
